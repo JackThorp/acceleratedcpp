@@ -2,6 +2,7 @@
 #include <sstream>
 #include <vector>
 #include <string>
+#include <algorithm>
 /* Permuted index takes a list of sentences and outputs a list where 
  * all premutations of every sentence split is indexed by one half but
  * ordered alphabetically by the value (not the key)
@@ -31,11 +32,6 @@ vector<string> read_words(string line)
   return words;
 }
 
-bool compSentences(const vector<string>& s1, const vector<string>& s2)
-{
-  return s1[0] < s2[0];
-}
-
 struct PermutedIndex {
 
   vector<string> permutation;
@@ -43,6 +39,15 @@ struct PermutedIndex {
   string rotatedLine;
   int rotation;
 };
+
+string string_from_vec_string(vector<string>& stringVec)
+{
+  string result;
+  for(vs_it it = stringVec.begin(); it != stringVec.end(); it++){
+    result += *it + " ";
+  }
+  return result;
+}
 
 void build_index(vector<string>& lines, vector<PermutedIndex>& index)
 {
@@ -52,12 +57,12 @@ void build_index(vector<string>& lines, vector<PermutedIndex>& index)
     
     vector<string> sentence = read_words(*it_line);
 
-    vector<string> rotated_words;
     int rotation = 0;
 
     // Make a permutation by iterating through line
     for(vs_it it_word = sentence.begin(); it_word != sentence.end(); it_word++) {
     
+      vector<string> rotated_words;
 
       // Push all words from here to end of original line
       for(vs_it it_rest = it_word; it_rest != sentence.end(); it_rest++) {
@@ -81,9 +86,25 @@ void build_index(vector<string>& lines, vector<PermutedIndex>& index)
   }
 }
 
+bool comp_permutations(PermutedIndex& a, PermutedIndex& b)
+{
+  string a_l = string(a.rotatedLine);
+  string b_l = string(b.rotatedLine);
+  transform(a.rotatedLine.begin(), a.rotatedLine.end(), a_l.begin(), ::tolower);
+  transform(b.rotatedLine.begin(), b.rotatedLine.end(), b_l.begin(), ::tolower);
+  return a_l < b_l;
+}
+
 void sort_index(vector<PermutedIndex>& index)
 {
-  
+    sort(index.begin(), index.end(), comp_permutations);
+}
+
+void print_index(vector<PermutedIndex>& index) 
+{
+  for(vector<PermutedIndex>::iterator it = index.begin(); it != index.end(); it++) {
+    cout << it->rotatedLine << endl;
+  }
 }
 
 int main(int argc, char* argv[]) {
@@ -98,6 +119,8 @@ int main(int argc, char* argv[]) {
 
   // Sort permuted indicies
   sort_index(index);
+
+  print_index(index);
 /*
   // Sort rotations
   sort(dict.begin(), dict.end(), compSentences);
