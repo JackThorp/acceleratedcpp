@@ -1,3 +1,4 @@
+#include "frame.hpp"
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -107,15 +108,27 @@ void print_index(vector<PermutedIndex>& index)
   }
 }
 
-void get_pre_text_lines(vector<string>& preLines, vector<PermutedIndex>& index)
+
+void get_pre_post_text_lines(vector<string>& preLines, vector<string>& postLines, vector<PermutedIndex>& index)
 {
 
   for(vector<PermutedIndex>::iterator it = index.begin(); it != index.end(); it++) {
+    
     string preBuild;
-    for(int i = 0; i < it->rotation; i++) {
-      preBuild += it->original[i] + " ";
+    string postBuild;
+    int rot = 0;
+    for(vs_it it_s = it->original.begin(); it_s != it->original.end(); it_s++) {
+      
+      if(rot < it->rotation) {
+        preBuild += *it_s + " ";
+      } else {
+        postBuild += *it_s + " ";
+      }
+      rot++;
     }
     preLines.push_back(preBuild);
+    postLines.push_back(postBuild);
+  
   }
 }
 
@@ -139,12 +152,16 @@ int main(int argc, char* argv[]) {
 
   // Get ordered set of sentence parts for before index word, and also for after. 
   vector<string> preLines;
-  get_pre_text_lines(preLines, index);
-  //get_post_text_lines();
+  vector<string> postLines;
+  get_pre_post_text_lines(preLines, postLines, index);
 
-  for(vs_it it=preLines.begin(); it != preLines.end(); it++) {
-    cout << *it << endl;
-  }
+  //for(vs_it it=preLines.begin(); it != preLines.end(); it++) {
+  //  cout << *it << endl;
+  //}
+
+  frame(preLines);
+  frame(postLines);
+
   // Write pre amd post text lines to padded, aligned block on a stream
   //frame_right();
   //frame_left();
