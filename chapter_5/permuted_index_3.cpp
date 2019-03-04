@@ -107,6 +107,18 @@ void print_index(vector<PermutedIndex>& index)
   }
 }
 
+void get_pre_text_lines(vector<string>& preLines, vector<PermutedIndex>& index)
+{
+
+  for(vector<PermutedIndex>::iterator it = index.begin(); it != index.end(); it++) {
+    string preBuild;
+    for(int i = 0; i < it->rotation; i++) {
+      preBuild += it->original[i] + " ";
+    }
+    preLines.push_back(preBuild);
+  }
+}
+
 int main(int argc, char* argv[]) {
 
   // Splt input by line
@@ -117,10 +129,31 @@ int main(int argc, char* argv[]) {
   vector<PermutedIndex> index; 
   build_index(lines, index);
 
+
+  //print_index(index);
+
   // Sort permuted indicies
   sort_index(index);
 
   print_index(index);
+
+  // Get ordered set of sentence parts for before index word, and also for after. 
+  vector<string> preLines;
+  get_pre_text_lines(preLines, index);
+  //get_post_text_lines();
+
+  for(vs_it it=preLines.begin(); it != preLines.end(); it++) {
+    cout << *it << endl;
+  }
+  // Write pre amd post text lines to padded, aligned block on a stream
+  //frame_right();
+  //frame_left();
+
+  // Horizontally concatinate frames
+  //h_concat_frames();
+
+  // Print frames to std out
+
 /*
   // Sort rotations
   sort(dict.begin(), dict.end(), compSentences);
