@@ -45,9 +45,10 @@ vector<string> read_words(string line)
  */
 struct PermutedIndex {
 
-  vector<string> permutation;
+  vector<string> postIndex;
+  vector<string> preIndex;
   vector<string> original;
-  string rotatedLine;
+  string index;
   int lineNum;
   int rotation;
 };
@@ -64,6 +65,9 @@ string string_from_vec_string(vector<string>& stringVec)
   return result;
 }
 
+string::size_type preIndexWidth = 0; 
+string::size_type indexWidth = 0;
+string::size_type postIndexWidth = 0;
 
 /* Rotates each line of input up to the line size and creates an index instance
  * for each such permutation storing relavent meta info. 
@@ -84,25 +88,39 @@ void build_index(vector<string>& lines, vector<PermutedIndex>& index)
     // Make permutations for each word or index into the sentence
     for(vs_it it_word = sentence.begin(); it_word != sentence.end(); it_word++) {
     
-      vector<string> rotated_words;
+      vector<string> afterIndex;
+      vector<string> beforeIndex;
+      string::size_type afterIndexSize = 0;
+      string::size_type beforeIndexSize = 0;
 
-      // Push all words from the index word to end of line
-      for(vs_it it_rest = it_word; it_rest != sentence.end(); it_rest++) {
-        rotated_words.push_back(*it_rest);
+      // Push all words after the index word to end of line
+      for(vs_it it_rest = it_word + 1; it_rest != sentence.end(); it_rest++) {
+        
+        // Calculate printed size of the pre index test; +1 for spaces.
+        afterIndexSize += it_rest->size() + 1;
+        afterIndex.push_back(*it_rest);
       }
       
       // Append the words from begining up to index word.
       for(vs_it it_rest = sentence.begin(); it_rest != it_word; it_rest++) {
-        rotated_words.push_back(*it_rest);
+
+        // Calculate printed size of the pre index test; +1 for spaces.
+        beforeIndexSize += it_rest->size() + 1;
+        beforeIndex.push_back(*it_rest);
       }
      
       PermutedIndex pi;
       pi.original     = sentence;
-      pi.permutation  = rotated_words;
-      pi.rotatedLine  = string_from_vec_string(rotated_words);
+      pi.postIndex    = afterIndex;
+      pi.preIndex     = beforeIndex;
+      pi.index        = *it_word;
       pi.rotation     = rotation;
       pi.lineNum      = line;
       index.push_back(pi);
+
+      preIndexWidth  = max(preIndexWidth, beforeIndexSize);  
+      postIndexWidth = max(postIndexWidth, afterIndexSize);  
+      indexWidth = max(indexWidth, it_word->size());
 
       // We could use it-lines.begin() if we wanted to drop the rotation counter
       rotation++;
@@ -120,12 +138,11 @@ void build_index(vector<string>& lines, vector<PermutedIndex>& index)
 bool comp_permutations(PermutedIndex& a, PermutedIndex& b)
 {
   // Create a new copy of each index line
-  string a_l = string(a.rotatedLine);
-  string b_l = string(b.rotatedLine);
+  string a_l = string(a.index);
+  string b_l = string(b.index);
  
-  // convert sentence to lower case so capitals do not affect ordering
-  transform(a.rotatedLine.begin(), a.rotatedLine.end(), a_l.begin(), ::tolower);
-  transform(b.rotatedLine.begin(), b.rotatedLine.end(), b_l.begin(), ::tolower);
+  transform(a.index.begin(), a.index.end(), a_l.begin(), ::tolower);
+  transform(b.index.begin(), b.index.end(), b_l.begin(), ::tolower);
   
   return a_l < b_l;
 }
@@ -139,15 +156,27 @@ void sort_index(vector<PermutedIndex>& index)
 }
 
 
-/* Helper function to print rotated lines
- */
-void print_index(vector<PermutedIndex>& index) 
+void print_index(vector<PermutedIndex>& index)
 {
-  for(vector<PermutedIndex>::iterator it = index.begin(); it != index.end(); it++) {
-    cout << it->rotatedLine << endl;
-  }
-}
 
+  string::size_type totalWidth = preIndexWidth + postIndexWidth + indexWidth + 18;
+  cout << string(totalWidth, '*') << endl;
+    
+  for(vector<PermutedIndex>::iterator it = index.begin(); it != index.end(); it++) {
+   
+    string pre = string_from_vec_string(it->preIndex);
+    string post = string_from_vec_string(it->postIndex);
+
+    cout << "* " << string(preIndexWidth - pre.size(), ' ') << pre;
+    cout << " _ " << it->index << string(indexWidth - it->index.size(), ' ');
+    cout << " _ " << post << string(postIndexWidth - post.size(), ' ');
+    cout << " * " << it->lineNum;
+    cout << " * " << (it->rotation + 1) << " *" << endl;
+
+  }
+
+  cout << string(totalWidth, '*') << endl;
+}
 
 /* Uses rotation count to returns pre index text 
  */
@@ -155,21 +184,8 @@ void get_index_info(vector<string>& preLines, vector<string>& postLines, vector<
 {
 
   for(vector<PermutedIndex>::iterator it = index.begin(); it != index.end(); it++) {
-    
-    string preBuild;
-    string postBuild;
-    int rot = 0;
-    for(vs_it it_s = it->original.begin(); it_s != it->original.end(); it_s++) {
-      
-      if(rot < it->rotation) {
-        preBuild += *it_s + " ";
-      } else {
-        postBuild += *it_s + " ";
-      }
-      rot++;
-    }
-    preLines.push_back(preBuild);
-    postLines.push_back(postBuild);
+    preLines.push_back(string_from_vec_string(it->preIndex));
+    postLines.push_back(string_from_vec_string(it->postIndex));
     lineNums.push_back(to_string(it->lineNum));
     wordNums.push_back(to_string(it->rotation + 1));
   }
@@ -188,6 +204,8 @@ int main(int argc, char* argv[]) {
   // Sort index alphabetically
   sort_index(index);
 
+  print_index(index);
+  /*
   // Get ordered set of pre-index text, post-index text, line and word numbers. 
   vector<string> preLines, postLines, wordNums, lineNums;
   get_index_info(preLines, postLines, wordNums, lineNums, index);
@@ -203,7 +221,7 @@ int main(int argc, char* argv[]) {
   for(vs_it it=out.begin(); it != out.end(); it++) {
     cout << *it << endl;
   }
-
+*/
   return 0;
 } 
 
