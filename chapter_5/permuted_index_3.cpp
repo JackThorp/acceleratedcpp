@@ -142,26 +142,23 @@ int main(int argc, char* argv[]) {
   vector<PermutedIndex> index; 
   build_index(lines, index);
 
-
-  //print_index(index);
-
   // Sort permuted indicies
   sort_index(index);
-
-  print_index(index);
 
   // Get ordered set of sentence parts for before index word, and also for after. 
   vector<string> preLines;
   vector<string> postLines;
   get_pre_post_text_lines(preLines, postLines, index);
 
-  //for(vs_it it=preLines.begin(); it != preLines.end(); it++) {
-  //  cout << *it << endl;
-  //}
+  
+  preLines = frame_r(preLines);
+  postLines = frame_l(postLines);
+  
+  vector<string> out = hcat(preLines, postLines);
 
-  frame(preLines);
-  frame(postLines);
-
+  for(vs_it it=out.begin(); it != out.end(); it++) {
+    cout << *it << endl;
+  }
   // Write pre amd post text lines to padded, aligned block on a stream
   //frame_right();
   //frame_left();
