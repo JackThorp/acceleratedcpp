@@ -11,4 +11,3 @@
 <location>      under the sky
 <location>      wherever it wants
 <sentence>      the <noun-phrase> <verb> <location>
-
