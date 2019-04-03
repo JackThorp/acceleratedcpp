@@ -2,7 +2,7 @@
 
 using namespace std;
 
-Student_info::Student_info(): midterm(0), finalMark(0) {
+Student_info::Student_info(): midterm(0), finalMark(0), grade(0), homework_grade(0) {
   cout << "Student  Constructed" << endl;
 }
 
@@ -36,7 +36,16 @@ istream& Student_info::read(istream& in) {
 
 ostream& Student_info::print(ostream& os) {
 
-  os << name << " M: " << midterm << " F: " << finalMark << endl;
+  os << name << " M: " << midterm << " F: " << finalMark;
+  os << " H: " << homework_grade << " G: " << grade << endl;
   return os;
+}
+
+void Student_info::calculate_homework_grade(double grade_fun(vector<double>)) {
+  homework_grade = grade_fun(homework);
+}
+
+void Student_info::calculate_grade(double grade_fun(double, double, double)) {
+  grade = grade_fun(midterm, finalMark, homework_grade);
 }
 
